@@ -31,6 +31,7 @@ public:
     void show_serverdir();  // 显示服务端目录
 private slots:
     void connect_success(); // 连接成功
+    void socket_error();
     void recv_msg();    // 接收消息
     void connect_success2();
     void recv_msg2();

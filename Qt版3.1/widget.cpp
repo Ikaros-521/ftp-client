@@ -29,6 +29,7 @@ Widget::Widget(QWidget *parent) :
     tcpSocket = new QTcpSocket;
     tcpSocket2 = new QTcpSocket;
     connect(tcpSocket,SIGNAL(connected()),this,SLOT(connect_success())); // 关联接收连接信号与槽函数
+    connect(tcpSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socket_error()));
     connect(tcpSocket,SIGNAL(readyRead()),this,SLOT(recv_msg()));
     connect(tcpSocket2,SIGNAL(connected()),this,SLOT(connect_success2()));
     connect(tcpSocket2,SIGNAL(readyRead()),this,SLOT(recv_msg2()));
@@ -93,8 +94,6 @@ void Widget::show_serverdir()
     tcpSocket->waitForBytesWritten();
 }
 
-
-
 // 点击connect按钮
 void Widget::on_connect_clicked()
 {
@@ -115,6 +114,11 @@ void Widget::on_connect_clicked()
     short port = _port.toShort();
 
     tcpSocket->connectToHost(ip,port);  // 连接
+    if(!tcpSocket->waitForConnected(5000))
+    {
+        qDebug("tcpSocket connect failed!");
+        return;
+    }
 
     char username[60] = {};
     sprintf(username,"USER %s\n",ui->username->text().toStdString().c_str());
@@ -180,6 +184,11 @@ void Widget::recv_msg()
         const char* ip = _ip.toStdString().c_str();
 
         tcpSocket2->connectToHost(ip,port3);    // 连接
+        if(!tcpSocket2->waitForConnected(5000))
+        {
+            qDebug("tcpSocket2 connect failed!");
+            return;
+        }
         //std::cout << "port:"<<port3<<",socket2 connect" << endl;
     }
 
@@ -234,15 +243,27 @@ void Widget::recv_msg()
         ui->listWidget_c->clear();  // 清空listWidget_c
         show_clientdir();
     }
+    // 426
+    if(strstr(buf1,"426 Failure writing network stream.") != NULL)
+    {
+        download = false;
+        upload = false;
+        ui->listWidget_c->clear();  // 清空listWidget_c
+        show_clientdir();
+    }
 
     bzero(buf1,sizeof(buf1));
-
 }
 
 // socket1连接成功
 void Widget::connect_success()
 {
     qDebug("connected()");
+}
+
+void Widget::socket_error()
+{
+    qDebug("socket_error()");
 }
 
 // tcpSocket2接收到消息
@@ -270,7 +291,7 @@ void Widget::recv_msg2()
             break;
         }
 
-        qDebug("len:%d", strlen(buf2));
+        // qDebug("len:%d", strlen(buf2));
 
         // 读取命令LIST -al返回的信息
         if(buf2[1] == 'r' && (buf2[0] == '-' || buf2[0] == 'd') && download == false)
@@ -315,7 +336,7 @@ void Widget::recv_msg2()
         }
 
         num++;
-        qDebug("num:%d", num);
+        // qDebug("num:%d", num);
     }
     tcpSocket2->close();
 }
