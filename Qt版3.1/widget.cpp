@@ -26,14 +26,22 @@ Widget::Widget(QWidget *parent) :
     download = false;
     upload = false;
 
+    file_flag = 0;
+    file_size = 0;
+
     tcpSocket = new QTcpSocket;
     tcpSocket2 = new QTcpSocket;
+
+    qDebug("socket2_readBufferSize:%lld", tcpSocket2->readBufferSize());
+
     connect(tcpSocket,SIGNAL(connected()),this,SLOT(connect_success())); // 关联接收连接信号与槽函数
-    connect(tcpSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socket_error()));
     connect(tcpSocket,SIGNAL(readyRead()),this,SLOT(recv_msg()));
+    connect(tcpSocket,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socket_error()));
+    connect(tcpSocket,SIGNAL(disconnected()),this,SLOT(socket_close()));
     connect(tcpSocket2,SIGNAL(connected()),this,SLOT(connect_success2()));
     connect(tcpSocket2,SIGNAL(readyRead()),this,SLOT(recv_msg2()));
-
+    connect(tcpSocket2,SIGNAL(error(QAbstractSocket::SocketError)),this,SLOT(socket_error2()));
+    connect(tcpSocket2,SIGNAL(disconnected()),this,SLOT(socket_close2()));
 
     strcpy(clientdir,".");
     strcpy(serverdir,".");
@@ -44,7 +52,6 @@ Widget::~Widget()
 {
     delete ui;
 }
-
 
 // 显示客户端的所有文件
 void Widget::show_clientdir()
@@ -152,7 +159,6 @@ void Widget::on_connect_clicked()
     tcpSocket->write(pasv,strlen(pasv));
     tcpSocket->waitForBytesWritten();
 
-
     char list[20] = {};
     sprintf(list,"LIST -al\n");
     tcpSocket->write(list,strlen(list));
@@ -172,7 +178,7 @@ void Widget::recv_msg()
     //qDebug("%s",buf);
 
     // PASV 227
-    if(strstr(buf1,"227") != NULL)
+    if(strstr(buf1,"227 ") != NULL)
     {
         int ip1,ip2,ip3,ip4,port1,port2;    // 解析第二个端口号
         sscanf(strchr(buf,'(')+1,"%d,%d,%d,%d,%d,%d",&ip1,&ip2,&ip3,&ip4,&port1,&port2);
@@ -191,9 +197,8 @@ void Widget::recv_msg()
         }
         //std::cout << "port:"<<port3<<",socket2 connect" << endl;
     }
-
     // PWD 257
-    if(strstr(buf1,"257") != NULL)
+    else if(strstr(buf1,"257 ") != NULL)
     {
         char* str_pwd = (strpbrk(buf1,"\"")+1);  // 获取最后的字符串
 
@@ -205,15 +210,13 @@ void Widget::recv_msg()
         QString dir(byte);
         ui->serverdir->setText(dir);
     }
-
-
     // 150 down
-    if(strstr(buf1,"150 Opening BINARY mode data connection for") != NULL)
+    else if(strstr(buf1,"150 Opening BINARY mode data connection for") != NULL)
     {
         download = true;
     }
     // 150 up
-    if(strstr(buf1,"150 Ok to send data.") != NULL)
+    else if(strstr(buf1,"150 Ok to send data.") != NULL)
     {
         qDebug("收到150");
         upload = true;
@@ -236,7 +239,7 @@ void Widget::recv_msg()
         tcpSocket2->close();
     }
     // 226
-    if(strstr(buf1,"226 Transfer complete.") != NULL)
+    else if(strstr(buf1,"226 Transfer complete.") != NULL)
     {
         download = false;
         upload = false;
@@ -244,12 +247,29 @@ void Widget::recv_msg()
         show_clientdir();
     }
     // 426
-    if(strstr(buf1,"426 Failure writing network stream.") != NULL)
+    else if(strstr(buf1,"426 Failure writing network stream.") != NULL)
     {
         download = false;
         upload = false;
         ui->listWidget_c->clear();  // 清空listWidget_c
         show_clientdir();
+    }
+    // 200 TYPE
+    else if(strstr(buf1,"200 Switching") != NULL)
+    {
+        file_flag = 1;
+    }
+    // 213 file size
+    else if(strstr(buf1,"213 ") != NULL)
+    {
+        if(file_flag == 1)
+        {
+            file_flag = 0;
+
+            char *str1 = &buf[4];
+            file_size = atoi(str1);
+            qDebug("file_size:%d", file_size);
+        }
     }
 
     bzero(buf1,sizeof(buf1));
@@ -258,7 +278,12 @@ void Widget::recv_msg()
 // socket1连接成功
 void Widget::connect_success()
 {
-    qDebug("connected()");
+    qDebug("socket connected()");
+}
+
+void Widget::connect_success2()
+{
+    qDebug("socket2 connected()");
 }
 
 void Widget::socket_error()
@@ -266,12 +291,30 @@ void Widget::socket_error()
     qDebug("socket_error()");
 }
 
+void Widget::socket_error2()
+{
+    qDebug("socket_error2()");
+}
+
+void Widget::socket_close()
+{
+    qDebug("socket_close()");
+}
+
+void Widget::socket_close2()
+{
+    qDebug("socket_close2()");
+}
+
 // tcpSocket2接收到消息
 void Widget::recv_msg2()
 {
     ui->listWidget_s->clear();  // 清空listWidget_s
     int i = 0, ret = 0, ret2 = 0, num = 0;
+    int fd = 0;
     char buf2[10240] = {};
+    char img[256] = {};
+    char* str = NULL;
     while(1)
     {
         bzero(buf2, sizeof(buf2));
@@ -287,7 +330,7 @@ void Widget::recv_msg2()
                 qDebug("写入完毕");
             }
 
-            qDebug("tcpSocket2->readLine ret:%d", ret);
+            // qDebug("tcpSocket2->readLine ret:%d", ret);
             break;
         }
 
@@ -297,8 +340,6 @@ void Widget::recv_msg2()
         if(buf2[1] == 'r' && (buf2[0] == '-' || buf2[0] == 'd') && download == false)
         {
             // qDebug("读取命令LIST -al返回的信息");
-
-            char img[256] = {};
 
             strcpy(img,":/icon/");
             if(buf2[0] == 'd')  // 判断是否是目录文件
@@ -312,7 +353,7 @@ void Widget::recv_msg2()
             }
             QIcon icon(img);
 
-            char* str = (strrchr(buf2,' ')+1);  // 获取最后的字符串
+            str = (strrchr(buf2,' ')+1);  // 获取最后的字符串
             str[strlen(str)-2] = '\0';  // 用\0替换\n
             QByteArray byte(str);   // 解决中文乱码问题
             QString filename(byte);
@@ -324,7 +365,7 @@ void Widget::recv_msg2()
         if(download == true)
         {
             // 读取下载的信息,写入文件
-            int fd = open(file_name, O_WRONLY|O_CREAT|O_APPEND, 0666);
+            fd = open(file_name, O_WRONLY|O_CREAT|O_APPEND, 0666);
             // qDebug("fd:%d", fd);
             ret2 = write(fd, buf2, ret);
             if(ret2 == 0)
@@ -339,12 +380,6 @@ void Widget::recv_msg2()
         // qDebug("num:%d", num);
     }
     tcpSocket2->close();
-}
-
-// socket2连接成功
-void Widget::connect_success2()
-{
-    qDebug("connected()");
 }
 
 // client的listWidget双击
@@ -404,7 +439,6 @@ void Widget::on_listWidget_s_doubleClicked(const QModelIndex &index)
     tcpSocket->write(pwd,strlen(pwd));
     tcpSocket->waitForBytesWritten();
 
-
     char pasv[20] = {};
     sprintf(pasv,"PASV\n");
     tcpSocket->write(pasv,strlen(pasv));
@@ -414,7 +448,6 @@ void Widget::on_listWidget_s_doubleClicked(const QModelIndex &index)
     sprintf(list,"LIST -al\n");
     tcpSocket->write(list,strlen(list));
     tcpSocket->waitForBytesWritten();
-
 }
 
 // 点击 << 下载按钮
@@ -450,7 +483,6 @@ void Widget::on_left_clicked()
     tcpSocket->write(pasv,strlen(pasv));
     tcpSocket->waitForBytesWritten();
 
-
     char retr[60] = {};
     sprintf(retr,"RETR %s\n",filename);
     tcpSocket->write(retr,strlen(retr));
@@ -470,7 +502,6 @@ void Widget::on_left_clicked()
     sprintf(list,"LIST -al\n");
     tcpSocket->write(list,strlen(list));
     tcpSocket->waitForBytesWritten();
-
 }
 
 // 点击 >> 上传按钮
@@ -515,7 +546,7 @@ void Widget::on_right_clicked()
     while(upload == true)
     {
         usleep(1000);
-        qDebug("while...");
+        qDebug("while upload...");
     }
 
     char mdtm[60] = {};
@@ -577,7 +608,6 @@ void Widget::on_serverdir_returnPressed()
     sprintf(pwd,"PWD\n");
     tcpSocket->write(pwd,strlen(pwd));
     tcpSocket->waitForBytesWritten();
-
 
     char pasv[20] = {};
     sprintf(pasv,"PASV\n");

@@ -22,6 +22,8 @@ class Widget : public QWidget
     bool download;  // 下载标记
     bool upload;    // 上传标记
     char file_name[256];    // 文件名
+    int file_flag;
+    int file_size;
     QString client_filename[1024];  // 客户端获取到的文件名
     QString server_filename[1024];  // 服务端获取到的文件名
 public:
@@ -32,9 +34,12 @@ public:
 private slots:
     void connect_success(); // 连接成功
     void socket_error();
+    void socket_error2();
     void recv_msg();    // 接收消息
     void connect_success2();
     void recv_msg2();
+    void socket_close();
+    void socket_close2();
 
     void on_listWidget_c_doubleClicked(const QModelIndex &index);   // 双击
     void on_connect_clicked();  // 单击connect

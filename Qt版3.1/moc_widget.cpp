@@ -1,7 +1,7 @@
 /****************************************************************************
 ** Meta object code from reading C++ file 'widget.h'
 **
-** Created: Tue Sep 10 10:41:18 2019
+** Created: Fri May 7 14:12:11 2021
 **      by: The Qt Meta Object Compiler version 63 (Qt 4.8.1)
 **
 ** WARNING! All changes made in this file will be lost!
@@ -23,7 +23,7 @@ static const uint qt_meta_data_Widget[] = {
        6,       // revision
        0,       // classname
        0,    0, // classinfo
-      11,   14, // methods
+      15,   14, // methods
        0,    0, // properties
        0,    0, // enums/sets
        0,    0, // constructors
@@ -33,22 +33,28 @@ static const uint qt_meta_data_Widget[] = {
  // slots: signature, parameters, type, tag, flags
        8,    7,    7,    7, 0x08,
       26,    7,    7,    7, 0x08,
-      37,    7,    7,    7, 0x08,
-      56,    7,    7,    7, 0x08,
-      74,   68,    7,    7, 0x08,
-     117,    7,    7,    7, 0x08,
-     138,   68,    7,    7, 0x08,
-     181,    7,    7,    7, 0x08,
-     199,    7,    7,    7, 0x08,
-     218,    7,    7,    7, 0x08,
-     247,    7,    7,    7, 0x08,
+      41,    7,    7,    7, 0x08,
+      57,    7,    7,    7, 0x08,
+      68,    7,    7,    7, 0x08,
+      87,    7,    7,    7, 0x08,
+      99,    7,    7,    7, 0x08,
+     114,    7,    7,    7, 0x08,
+     136,  130,    7,    7, 0x08,
+     179,    7,    7,    7, 0x08,
+     200,  130,    7,    7, 0x08,
+     243,    7,    7,    7, 0x08,
+     261,    7,    7,    7, 0x08,
+     280,    7,    7,    7, 0x08,
+     309,    7,    7,    7, 0x08,
 
        0        // eod
 };
 
 static const char qt_meta_stringdata_Widget[] = {
-    "Widget\0\0connect_success()\0recv_msg()\0"
-    "connect_success2()\0recv_msg2()\0index\0"
+    "Widget\0\0connect_success()\0socket_error()\0"
+    "socket_error2()\0recv_msg()\0"
+    "connect_success2()\0recv_msg2()\0"
+    "socket_close()\0socket_close2()\0index\0"
     "on_listWidget_c_doubleClicked(QModelIndex)\0"
     "on_connect_clicked()\0"
     "on_listWidget_s_doubleClicked(QModelIndex)\0"
@@ -64,16 +70,20 @@ void Widget::qt_static_metacall(QObject *_o, QMetaObject::Call _c, int _id, void
         Widget *_t = static_cast<Widget *>(_o);
         switch (_id) {
         case 0: _t->connect_success(); break;
-        case 1: _t->recv_msg(); break;
-        case 2: _t->connect_success2(); break;
-        case 3: _t->recv_msg2(); break;
-        case 4: _t->on_listWidget_c_doubleClicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
-        case 5: _t->on_connect_clicked(); break;
-        case 6: _t->on_listWidget_s_doubleClicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
-        case 7: _t->on_left_clicked(); break;
-        case 8: _t->on_right_clicked(); break;
-        case 9: _t->on_clientdir_returnPressed(); break;
-        case 10: _t->on_serverdir_returnPressed(); break;
+        case 1: _t->socket_error(); break;
+        case 2: _t->socket_error2(); break;
+        case 3: _t->recv_msg(); break;
+        case 4: _t->connect_success2(); break;
+        case 5: _t->recv_msg2(); break;
+        case 6: _t->socket_close(); break;
+        case 7: _t->socket_close2(); break;
+        case 8: _t->on_listWidget_c_doubleClicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
+        case 9: _t->on_connect_clicked(); break;
+        case 10: _t->on_listWidget_s_doubleClicked((*reinterpret_cast< const QModelIndex(*)>(_a[1]))); break;
+        case 11: _t->on_left_clicked(); break;
+        case 12: _t->on_right_clicked(); break;
+        case 13: _t->on_clientdir_returnPressed(); break;
+        case 14: _t->on_serverdir_returnPressed(); break;
         default: ;
         }
     }
@@ -111,9 +121,9 @@ int Widget::qt_metacall(QMetaObject::Call _c, int _id, void **_a)
     if (_id < 0)
         return _id;
     if (_c == QMetaObject::InvokeMetaMethod) {
-        if (_id < 11)
+        if (_id < 15)
             qt_static_metacall(this, _c, _id, _a);
-        _id -= 11;
+        _id -= 15;
     }
     return _id;
 }

@@ -1,7 +1,7 @@
 /********************************************************************************
 ** Form generated from reading UI file 'widget.ui'
 **
-** Created: Tue May 4 03:51:46 2021
+** Created: Thu May 6 20:28:48 2021
 **      by: Qt User Interface Compiler version 4.8.1
 **
 ** WARNING! All changes made in this file will be lost when recompiling UI file!
@@ -318,7 +318,7 @@ public:
         left->setText(QApplication::translate("Widget", "<<", 0, QApplication::UnicodeUTF8));
         right->setText(QApplication::translate("Widget", ">>", 0, QApplication::UnicodeUTF8));
         label->setText(QApplication::translate("Widget", "ip\345\234\260\345\235\200\357\274\232", 0, QApplication::UnicodeUTF8));
-        ip->setText(QApplication::translate("Widget", "192.168.194.132", 0, QApplication::UnicodeUTF8));
+        ip->setText(QApplication::translate("Widget", "192.168.220.132", 0, QApplication::UnicodeUTF8));
         label_2->setText(QApplication::translate("Widget", "\347\224\250\346\210\267\345\220\215\357\274\232", 0, QApplication::UnicodeUTF8));
         username->setText(QApplication::translate("Widget", "test", 0, QApplication::UnicodeUTF8));
         label_3->setText(QApplication::translate("Widget", "\345\257\206\347\240\201\357\274\232", 0, QApplication::UnicodeUTF8));
